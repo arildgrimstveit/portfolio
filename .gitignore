@@ -1,5 +1,6 @@
 # Private files
 bull.txt
+transactions_private.py
 
 # Python cache files
 __pycache__/
