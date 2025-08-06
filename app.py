@@ -1,6 +1,10 @@
 import streamlit as st
 import data_manager
 import ui_components
+import yfinance as yf
+import pandas as pd
+from datetime import datetime, timedelta
+import importlib.util
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -70,9 +74,72 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+def get_instrument_price_data(instrument_name, days=90):
+    """Fetch 90 days of price data for an instrument"""
+    # Map instrument names to Yahoo Finance symbols
+    symbol_mapping = {
+        'KRON_GLOBAL': None,  # Norwegian fund, no direct price data
+        'NVDA': 'NVDA',
+        'GOOG': 'GOOG', 
+        'AAPL': 'AAPL',
+        'AMD': 'AMD',
+        'HOOD': 'HOOD',
+        'KOG': 'KOG.OL',  # Norwegian stock
+        'BTC': 'BTC-USD',
+        'SOLANA': 'SOL-USD',
+        'BSU': None,  # Norwegian savings, no price data
+        'CS_KNIFE': None,  # CS2 skin, no price data
+    }
+    
+    symbol = symbol_mapping.get(instrument_name)
+    if symbol is None:
+        return None
+    
+    try:
+        ticker = yf.Ticker(symbol)
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
+        
+        # Get historical data
+        hist = ticker.history(start=start_date, end=end_date, interval='1d')
+        
+        if hist.empty:
+            return None
+            
+        # Return closing prices
+        return hist['Close'].tolist()
+        
+    except Exception as e:
+        st.error(f"Error fetching data for {instrument_name}: {e}")
+        return None
+
+def get_user_instruments():
+    """Get list of unique instruments from user's transactions"""
+    try:
+        # Try to import private transactions
+        spec = importlib.util.find_spec('transactions_private')
+        if spec is not None:
+            transactions_private = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(transactions_private)
+            
+            # Extract unique instruments
+            instruments = set()
+            for transaction in transactions_private.transactions:
+                instruments.add(transaction[1])  # Instrument name is at index 1
+            return list(instruments)
+        else:
+            return []
+    except Exception as e:
+        st.error(f"Error loading private transactions: {e}")
+        return []
 
 # --- Data Loading ---
-df = data_manager.load_portfolio_data()
+import os
+import time
+# Force cache refresh by including file modification time
+csv_path = "data/portfolio.csv"
+file_mtime = os.path.getmtime(csv_path) if os.path.exists(csv_path) else time.time()
+df = data_manager.load_portfolio_data(_force_reload=file_mtime)
 
 if not df.empty:
     # --- Data Processing ---
@@ -112,7 +179,9 @@ if not df.empty:
     # --- Allocation Chart Section ---
     st.subheader("📊 Allocation")
     with st.container():
-        allocation_chart = ui_components.create_allocation_bar_chart(latest_snapshot)
+        # Filter out TOTAL from allocation chart
+        allocation_data = latest_snapshot[latest_snapshot['Instrument'] != 'TOTAL']
+        allocation_chart = ui_components.create_allocation_bar_chart(allocation_data)
         st.plotly_chart(allocation_chart, use_container_width=True, config={'displayModeBar': False})
 
     # Add space between allocation and instruments
@@ -121,7 +190,21 @@ if not df.empty:
     # --- Instrument Breakdown Section ---
     st.subheader("💼 Instruments")
     with st.container():
-        ui_components.render_instrument_cards(df, latest_snapshot)
+        # Filter out TOTAL from instrument cards too
+        instruments_data = latest_snapshot[latest_snapshot['Instrument'] != 'TOTAL']
+        
+        # Get user's actual instruments and their price data
+        user_instruments = get_user_instruments()
+        instrument_price_data = {}
+        
+        # Fetch price data for each instrument
+        with st.spinner("Fetching latest price data..."):
+            for instrument in user_instruments:
+                price_data = get_instrument_price_data(instrument)
+                if price_data:
+                    instrument_price_data[instrument] = price_data
+        
+        ui_components.render_instrument_cards(df, instruments_data, instrument_price_data)
 
 else:
     st.warning("Could not load portfolio data. Please check the data file.")

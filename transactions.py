@@ -1,30 +1,15 @@
-# Sample transactions for demo purposes
-# Your real transactions should be in transactions_private.py (gitignored)
-transactions = [
-    ('2024-01-10', 'AMD', 4, 141.98, 'USD'),
-    ('2024-01-23', 'AMD', 4, 157.56, 'USD'),
-    ('2024-01-30', 'AMD', 4, 152.56, 'USD'),
-    ('2025-02-14', 'AMD', 1, 172.33, 'USD'),
-    ('2025-02-28', 'AMD', 1, 180.84, 'USD'),
-    ('2025-03-14', 'AMD', 1, 180.1, 'USD'),
-    ('2025-03-27', 'AMD', 1, 184.16, 'USD'),
-    ('2025-04-12', 'AMD', 1, 183.28, 'USD'),
-    ('2025-05-01', 'AMD', 1, 168.58, 'USD'),
-    ('2025-06-18', 'AMD', 1, 167.99, 'USD'),
-    ('2025-07-02', 'AMD', 7, 136.39, 'USD'),
-    ('2025-07-02', 'AMD', 2, 141.19, 'USD'),
-    ('2025-07-22', 'AMD', 2, 156.8, 'USD'),
-    ('2025-08-01', 'AMD', 1, 176.72, 'USD'),
-    ('2024-07-01', 'KOG', 53, 324.42, 'NOK'),
-    ('2024-02-15', 'GOOG', 4, 174.97, 'USD'),
-    ('2024-03-15', 'HOOD', 4, 97.55, 'USD'),
-    ('2024-02-01', 'AAPL', 1, 208.58, 'USD'),
-    ('2024-03-01', 'NVDA', 1, 138.56, 'USD'),
-    ('2018-12-15', 'BTC', 0.0356, 2000, 'NOK'),
-    ('2024-12-09', 'BTC', 0.00043159, 500, 'NOK'),
-    ('2025-03-14', 'BTC', 0.00532214, 5000, 'NOK'),
-    ('2025-07-02', 'SOLANA', 3.0342, 5000, 'NOK'),
-    ('2019-07-27', 'BSU', 1, 25000, 'NOK'),
-    ('2024-11-18', 'BSU', 1, 27500, 'NOK'),
-    ('2025-07-06', 'CS_KNIFE', 1, 15000, 'NOK'),
-]
+import importlib.util
+
+# Try to import private transactions if available
+spec = importlib.util.find_spec('transactions_private')
+if spec is not None:
+    transactions_private = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(transactions_private)
+    transactions = transactions_private.transactions
+else:
+    # Demo transactions for public/demo use only
+    transactions = [
+        ('2024-01-01', 'DEMO_STOCK', 10, 100.0, 'USD'),
+        ('2024-02-01', 'DEMO_STOCK', 5, 110.0, 'USD'),
+        ('2024-03-01', 'DEMO_COIN', 0.1, 500.0, 'NOK'),
+    ]

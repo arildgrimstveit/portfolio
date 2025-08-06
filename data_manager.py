@@ -2,10 +2,11 @@ import pandas as pd
 import streamlit as st
 
 @st.cache_data
-def load_portfolio_data(data_path="data/portfolio.csv"):
+def load_portfolio_data(data_path="data/portfolio.csv", _force_reload=None):
     """
     Loads and processes the portfolio data from a CSV file.
     Caches the data to avoid reloading on every interaction.
+    _force_reload parameter can be used to force cache refresh.
     """
     try:
         df = pd.read_csv(data_path, parse_dates=["Date"])
@@ -22,7 +23,9 @@ def get_portfolio_summary(df):
     if df.empty:
         return 0, 0, 0, pd.DataFrame()
 
-    portfolio_over_time = df.groupby("Date")["Value_kNOK"].sum().reset_index()
+    # Filter out TOTAL rows to avoid double counting, then sum by date
+    df_without_total = df[df["Instrument"] != "TOTAL"]
+    portfolio_over_time = df_without_total.groupby("Date")["Value_kNOK"].sum().reset_index()
     
     if len(portfolio_over_time) < 2:
         return 0, 0, 0, portfolio_over_time

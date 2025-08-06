@@ -10,43 +10,21 @@ realistic sample data that will power your dashboard.
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import importlib.util
 
-# Your actual transactions
-TRANSACTIONS = [
-    # 📈 Kron Indeks Global
-    ("2023-12-01", "Kron Indeks Global", 41200, "Large initial investment"),
-    ("2024-01-15", "Kron Indeks Global", 6200, "January addition"),
-    ("2024-02-15", "Kron Indeks Global", 6200, "February addition"),
-    ("2024-03-15", "Kron Indeks Global", 6200, "March addition"),
-    ("2024-04-15", "Kron Indeks Global", 2050, "April small addition"),
-    ("2024-05-15", "Kron Indeks Global", 2050, "May small addition"),
-    ("2024-06-15", "Kron Indeks Global", 2050, "June small addition"),
-    ("2024-07-15", "Kron Indeks Global", 2050, "July small addition"),
-    ("2024-08-01", "Kron Indeks Global", 2022, "August small addition"),
-
-    # 📊 Stocks from Nordnet (using 2024 dates since 2025 market data doesn't exist yet)
-    ("2024-05-21", "Apple", 2119.66, "1 share @ 203.76 USD"),
-    ("2024-05-21", "Alphabet C", 1727.59, "1 share @ 165.22 USD"),
-    ("2024-07-02", "Advanced Micro Devices", 9651.77, "7 shares @ 135.70 USD"),
-    ("2024-07-02", "Advanced Micro Devices", 2849.04, "2 shares @ 138.76 USD"),
-    ("2024-07-08", "Robinhood Markets A", 1902.48, "2 shares @ 91.27 USD"),
-    ("2024-07-08", "Alphabet C", 5371.96, "3 shares @ 175.00 USD"),
-    ("2024-07-15", "Robinhood Markets A", 2063.54, "2 shares @ 99.00 USD"),
-    ("2024-07-22", "Advanced Micro Devices", 3168.98, "2 shares @ 154.37 USD"),
-    ("2024-07-24", "Kongsberg Gruppen", 1586.50, "5 shares @ 311.50 NOK"),
-    ("2024-08-01", "Advanced Micro Devices", 1820.13, "1 share @ 171.96 USD"),
-
-    # 🪙 Bitcoin
-    ("2018-12-15", "BTC", 2000, "Approx 0.0356 BTC, received 2025-01-19"),
-    ("2024-06-09", "BTC", 500, "Bought 0.00043159 BTC @ 1.1M NOK/BTC"),
-    ("2024-06-14", "BTC", 5000, "Bought 0.00532214 BTC @ 896,555.78 NOK/BTC incl. fee"),
-
-    # ☀️ Solana
-    ("2024-07-02", "SOLANA", 5000, "Bought 3.0342 SOL @ 1,572.60 NOK/SOL incl. fee"),
-
-    # 🎮 Karambit Black Laminate + inventory
-    ("2024-07-06", "CS2 SKINS", 15000, "Estimated inventory value incl. Karambit Black Laminate"),
-]
+# Try to import private transactions if available
+spec = importlib.util.find_spec('transactions_private')
+if spec is not None:
+    transactions_private = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(transactions_private)
+    TRANSACTIONS = transactions_private.transactions
+else:
+    # Demo transactions for public/demo use only
+    TRANSACTIONS = [
+        ("2024-01-01", "DEMO_STOCK", 1000, "Demo initial investment"),
+        ("2024-02-01", "DEMO_STOCK", 500, "Demo addition"),
+        ("2024-03-01", "DEMO_COIN", 200, "Demo crypto buy"),
+    ]
 
 # Realistic portfolio progression for a smooth development chart
 PORTFOLIO_VALUES = {

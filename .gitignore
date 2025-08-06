@@ -2,6 +2,10 @@
 bull.txt
 transactions_private.py
 
+# Private portfolio data (do not track)
+transactions_private.py
+ticker_mapping_private.py
+
 # Python cache files
 __pycache__/
 *.py[cod]

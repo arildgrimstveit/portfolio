@@ -14,52 +14,34 @@ import numpy as np
 from datetime import datetime, timedelta
 import sys
 from typing import Dict, List, Optional, Tuple
+import importlib.util
 
-# TRANSACTION HISTORY - Your actual purchases
-TRANSACTIONS = [
-    # Kron Indeks Global (estimates based on app screenshot)
-    ("2023-12-01", "Kron Indeks Global", 41200, "Large initial investment"),
-    ("2024-01-15", "Kron Indeks Global", 6200, "January addition"),
-    ("2024-02-15", "Kron Indeks Global", 6200, "February addition"),
-    ("2024-03-15", "Kron Indeks Global", 6200, "March addition"),
-    ("2024-04-15", "Kron Indeks Global", 2050, "April small addition"),
-    ("2024-05-15", "Kron Indeks Global", 2050, "May small addition"),
-    ("2024-06-15", "Kron Indeks Global", 2050, "June small addition"),
-    ("2024-07-15", "Kron Indeks Global", 2050, "July small addition"),
-    ("2024-08-01", "Kron Indeks Global", 2022, "August small addition"),
+# Try to import private transactions if available
+spec = importlib.util.find_spec('transactions_private')
+if spec is not None:
+    transactions_private = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(transactions_private)
+    TRANSACTIONS = transactions_private.transactions
+else:
+    # Demo transactions for public/demo use only
+    TRANSACTIONS = [
+        ("2024-01-01", "DEMO_STOCK", 1000, "Demo initial investment"),
+        ("2024-02-01", "DEMO_STOCK", 500, "Demo addition"),
+        ("2024-03-01", "DEMO_COIN", 200, "Demo crypto buy"),
+    ]
 
-    # Nordnet stock purchases
-    ("2025-05-21", "APPLE", 2119.66, "1 share @ 203.76 USD"),
-    ("2025-05-21", "GOOGLE", 1727.59, "1 share @ 165.22 USD"),
-    ("2025-07-02", "AMD", 9651.77, "7 shares @ 135.70 USD"),
-    ("2025-07-02", "AMD", 2849.04, "2 shares @ 138.76 USD"),
-    ("2025-07-08", "ROBINHOOD", 1902.48, "2 shares @ 91.27 USD"),
-    ("2025-07-08", "GOOGLE", 5371.96, "3 shares @ 175 USD"),
-    ("2025-07-15", "ROBINHOOD", 2063.54, "2 shares @ 99 USD"),
-    ("2025-07-22", "AMD", 3168.98, "2 shares @ 154.37 USD"),
-    ("2025-07-24", "KOG", 1586.50, "5 shares @ 311.5 NOK"),
-    ("2025-08-01", "AMD", 1820.13, "1 share @ 171.96 USD"),
-
-    # Bitcoin purchases
-    ("2018-12-15", "BTC", 2000, "Approx 0.0356 BTC, received 2025-01-19"),
-    ("2024-12-09", "BTC", 500, "Bought 0.00043159 BTC @ 1.1M NOK/BTC"),
-    ("2025-03-14", "BTC", 5000, "Bought 0.00532214 BTC @ 896,555.78 NOK/BTC incl. fee"),
-
-    # Solana purchase
-    ("2025-07-02", "SOLANA", 5000, "Bought 3.0342 SOL @ 1,572.60 NOK/SOL incl. fee"),
-]
-
-# INSTRUMENT MAPPING - Maps your instrument names to Yahoo Finance symbols
-SYMBOL_MAPPING = {
-    "Kron Indeks Global": None,       # Custom handling - use estimated value based on screenshot
-    "AMD": "AMD",                      # Advanced Micro Devices
-    "APPLE": "AAPL",                  # Apple Inc
-    "GOOGLE": "GOOG",                 # Alphabet Class C (since you bought Class C)
-    "ROBINHOOD": "HOOD",              # Robinhood Markets
-    "KOG": "KOG.OL",                  # Kongsberg Gruppen (Norwegian stock)
-    "BTC": "BTC-USD",                 # Bitcoin
-    "SOLANA": "SOL-USD",              # Solana
-}
+# Try to import private ticker mapping if available
+spec_map = importlib.util.find_spec('ticker_mapping_private')
+if spec_map is not None:
+    ticker_mapping_private = importlib.util.module_from_spec(spec_map)
+    spec_map.loader.exec_module(ticker_mapping_private)
+    SYMBOL_MAPPING = ticker_mapping_private.SYMBOL_MAPPING
+else:
+    # Demo mapping for public/demo use only
+    SYMBOL_MAPPING = {
+        "DEMO_STOCK": "DEMO",
+        "DEMO_COIN": "DEMO-COIN",
+    }
 
 # Custom asset handling for Norwegian funds and other assets
 CUSTOM_ASSETS = {
